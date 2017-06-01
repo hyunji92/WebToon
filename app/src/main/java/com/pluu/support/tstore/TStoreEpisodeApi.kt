@@ -36,7 +36,7 @@ class TStoreEpisodeApi(context: Context) : AbstractEpisodeApi(context) {
         firstEpisode = getFirstItem(info, doc)
         episodePage.episodes = parseList(info, doc)
 
-        if (episodePage.episodes.isNotEmpty()) {
+        if (episodePage.episodes?.isNotEmpty() ?: false) {
             episodePage.nextLink = info.toonId
         }
 
@@ -49,7 +49,9 @@ class TStoreEpisodeApi(context: Context) : AbstractEpisodeApi(context) {
             val episodeId = EPISODE_ID.find(a.attr("href"))?.value ?: return@forEach
 
             Episode(info, episodeId).apply {
-                image = IMG_PATTERN.find(a.select("span[class=list-thumbnail-pic ebook-lazy]").attr("style"))?.value
+                image = a.select("span[class=list-thumbnail-pic ebook-lazy]")?.let {
+                    IMG_PATTERN.find(it.attr("style"))?.value
+                }
                 episodeTitle = a.select(".list-item-text-title")?.text()
                 updateDate = a.select(".list-item-text-date-ty1")?.text()
                 list.add(this)
@@ -58,15 +60,19 @@ class TStoreEpisodeApi(context: Context) : AbstractEpisodeApi(context) {
         return list
     }
 
-    private fun getFirstItem(info: WebToonInfo, doc: Document): Episode? {
-        val href = doc.select(".layout-detail-header-btn a").attr("href")
-        val episodeId = EPISODE_ID.find(href)?.value ?: return null
-        return Episode(info, episodeId)
-    }
+    private fun getFirstItem(info: WebToonInfo, doc: Document) =
+            doc.select(".layout-detail-header-btn a")?.attr("href")?.let {
+                val result = EPISODE_ID.find(it)
+                if (result != null) {
+                    return@let Episode(info, result.value)
+                } else {
+                    return@let null
+                }
+            }
 
-    override fun moreParseEpisode(item: EpisodePage): String = item.nextLink
+    override fun moreParseEpisode(item: EpisodePage) = item.nextLink
 
-    override fun getFirstEpisode(item: Episode): Episode? = firstEpisode
+    override fun getFirstEpisode(item: Episode) = firstEpisode
 
     override val method: String
         get() = NetworkSupportApi.GET

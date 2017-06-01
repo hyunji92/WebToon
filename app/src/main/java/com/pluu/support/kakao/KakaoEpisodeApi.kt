@@ -36,7 +36,7 @@ class KakaoEpisodeApi(context: Context) : AbstractEpisodeApi(context) {
         }
 
         episodePage.episodes = parseList(info, doc)
-        if (episodePage.episodes.isNotEmpty()) {
+        if (episodePage.episodes?.isNotEmpty() ?: false) {
             offset++
             episodePage.nextLink = info.toonId
         }
@@ -58,11 +58,11 @@ class KakaoEpisodeApi(context: Context) : AbstractEpisodeApi(context) {
                     episodeTitle = it.select(".title").text()
                     updateDate = it.select(".date").text()
                 }
-            }.toList()
+            }
 
-    override fun moreParseEpisode(item: EpisodePage): String = item.nextLink
+    override fun moreParseEpisode(item: EpisodePage) = item.nextLink
 
-    override fun getFirstEpisode(item: Episode): Episode? = firstEpisode
+    override fun getFirstEpisode(item: Episode) = firstEpisode
 
     override fun init() {
         super.init()

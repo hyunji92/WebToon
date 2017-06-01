@@ -17,8 +17,9 @@ class DaumDetailApi(context: Context) : AbstractDetailApi(context) {
     override fun parseDetail(episode: Episode): Detail {
         this.id = episode.episodeId
 
-        val ret = Detail()
-        ret.webtoonId = episode.toonId
+        val ret = Detail().apply {
+            webtoonId = episode.toonId
+        }
 
         val json = try {
             JSONObject(requestApi()).optJSONObject("data")
@@ -27,7 +28,7 @@ class DaumDetailApi(context: Context) : AbstractDetailApi(context) {
         }
 
         if (json.optJSONObject("webtoonEpisode")?.optInt("price", 0) ?: 0 > 0) {
-            ret.errorType = ERROR_TYPE.COINT_NEED
+            ret.errorType = ERROR_TYPE.COIN_NEED
             return ret
         }
 
@@ -133,12 +134,10 @@ class DaumDetailApi(context: Context) : AbstractDetailApi(context) {
         return list
     }
 
-    override fun getDetailShare(episode: Episode, detail: Detail): ShareItem {
-        val item = ShareItem()
-        item.title = "${episode.title} / ${detail.title}"
-        item.url = SHARE_URL + detail.episodeId
-        return item
-    }
+    override fun getDetailShare(episode: Episode, detail: Detail) = ShareItem(
+        title = "${episode.title} / ${detail.title}",
+        url = "$SHARE_URL$detail.episodeId"
+    )
 
     override val method: String
         get() = NetworkSupportApi.POST

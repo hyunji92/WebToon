@@ -21,8 +21,9 @@ class KakaoDetailApi(context: Context) : AbstractDetailApi(context) {
     override fun parseDetail(episode: Episode): Detail {
         this.id = episode.episodeId
 
-        val ret = Detail()
-        ret.webtoonId = episode.toonId
+        val ret = Detail().apply {
+            webtoonId = episode.toonId
+        }
 
         val doc = try {
             Jsoup.parse(requestApi())
@@ -44,20 +45,22 @@ class KakaoDetailApi(context: Context) : AbstractDetailApi(context) {
             }
 
             val list = mutableListOf<DetailView>()
-            doc.select(".targetImg").mapTo(list) { DetailView.createImage(it.attr("data-original")) }
-            doc.select(".viewWrp li input").mapTo(list) { DetailView.createImage(it.attr("value")) }
+            mapOf(".targetImg" to "data-original",
+                    ".viewWrp li input" to "value",
+                    ".clickViewerWrp li input[class=originSrc]" to "value")
+                    .forEach { (target, attrs) ->
+                        doc.select(target).mapTo(list) { DetailView.createImage(it.attr(attrs)) }
+                    }
 
             this.list = list
         }
         return ret
     }
 
-    override fun getDetailShare(episode: Episode, detail: Detail): ShareItem {
-        val item = ShareItem()
-        item.title = "${episode.title} / ${detail.title}"
-        item.url = DETAIL_URL.format(episode.episodeId)
-        return item
-    }
+    override fun getDetailShare(episode: Episode, detail: Detail) = ShareItem(
+            title = "${episode.title} / ${detail.title}",
+            url = DETAIL_URL.format(episode.episodeId)
+    )
 
     override val method: String
         get() = NetworkSupportApi.GET

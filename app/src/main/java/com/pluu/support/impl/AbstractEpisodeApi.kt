@@ -22,13 +22,12 @@ abstract class AbstractEpisodeApi(context: Context) : NetworkSupportApi(context)
 
     abstract fun parseEpisode(info: WebToonInfo): EpisodePage
 
-    abstract fun moreParseEpisode(item: EpisodePage): String
+    abstract fun moreParseEpisode(item: EpisodePage): String?
 
     abstract fun getFirstEpisode(item: Episode): Episode?
 
     companion object {
 
-        @JvmStatic
         fun getApi(context: Context, item: NAV_ITEM): AbstractEpisodeApi {
             when (item) {
                 NAV_ITEM.NAVER -> return NaverEpisodeApi(context)

@@ -89,7 +89,6 @@ class NaverDetailApi(context: Context) : AbstractDetailApi(context) {
                 .filter { it -> it.hasAttr("data-categoryid") }
                 .map { it -> it.attr("data-src") }
                 .map { url -> DetailView.createImage(url) }
-                .toList()
     }
 
     private fun parseDetailNormalType(doc: Document) =
@@ -103,12 +102,11 @@ class NaverDetailApi(context: Context) : AbstractDetailApi(context) {
                 }
                 .filter { it.isNotEmpty() && !SKIP_DETAIL.contains(it)}
                 .map { DetailView.createImage(it) }
-                .toList()
 
-    override fun getDetailShare(episode: Episode, detail: Detail) = ShareItem().apply {
-        title = episode.title + " / " + detail.title
+    override fun getDetailShare(episode: Episode, detail: Detail) = ShareItem(
+        title = "${episode.title} / ${detail.title}",
         url = SHARE_URL.format(detail.webtoonId, detail.episodeId)
-    }
+    )
 
     override val method: String
         get() = NetworkSupportApi.GET

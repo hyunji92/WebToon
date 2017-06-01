@@ -1,6 +1,5 @@
 package com.pluu.webtoon.ui;
 
-import android.app.ProgressDialog;
 import android.support.annotation.NonNull;
 
 import com.pluu.support.impl.NAV_ITEM;
@@ -30,19 +29,18 @@ public class EpisodeFragmentTest {
 
     @Before
     public void setUp() throws Exception {
-        episodeFragment = new EpisodeFragment();
         mockRealm = mock(RealmHelper.class);
-        episodeFragment.realmHelper = mockRealm;
-        episodeFragment.loadDlg = mock(ProgressDialog.class);
-        episodeFragment.webToonInfo = mock(WebToonInfo.class);
-        episodeFragment.service = NAV_ITEM.DAUM;
+        episodeFragment = new EpisodeFragment();
+        episodeFragment.setRealmHelper(mockRealm);
+        episodeFragment.setInfo(mock(WebToonInfo.class));
+        episodeFragment.setService(NAV_ITEM.DAUM);
     }
 
     @Test
     public void getReadAction() throws Exception {
 
-        List<REpisode> value = getrEpisodes();
-        when(mockRealm.getEpisode(any(), anyString())).thenReturn(value);
+        List<REpisode> value = getEpisodes();
+        when(mockRealm.getEpisode(any(NAV_ITEM.class), anyString())).thenReturn(value);
 
         final boolean[] dispose = {false};
         final boolean[] unsubscribe = {false};
@@ -50,26 +48,24 @@ public class EpisodeFragmentTest {
         final boolean[] onEventError = {false};
         final int[] onEventCount = {0};
 
-
         TestObserver<List<String>> subscriber = TestObserver.create();
-        episodeFragment.getReadAction()
-                .flatMapObservable(episodes -> Observable.fromIterable(episodes).map(REpisode::getEpisodeId))
-                .toList()
-                .doOnDispose(() -> dispose[0] = true)
-                .doOnEvent((strings, throwable) -> {
-                    onEventCount[0]++;
-                    if (strings != null) {
-                        onEventSuccess[0] = true;
-                    }
+        episodeFragment.readAction()
+            .flatMapObservable(episodes -> Observable.fromIterable(episodes).map(REpisode::getEpisodeId))
+            .toList()
+            .doOnDispose(() -> dispose[0] = true)
+            .doOnEvent((strings, throwable) -> {
+                onEventCount[0]++;
+                if (strings != null) {
+                    onEventSuccess[0] = true;
+                }
 
-                    if (throwable != null) {
-                        throwable.printStackTrace();
-                        onEventError[0] = true;
-                    }
-                })
-                .doOnSubscribe(disposable -> unsubscribe[0] = true)
-                .subscribe(subscriber);
-
+                if (throwable != null) {
+                    throwable.printStackTrace();
+                    onEventError[0] = true;
+                }
+            })
+            .doOnSubscribe(disposable -> unsubscribe[0] = true)
+            .subscribe(subscriber);
 
         subscriber.awaitTerminalEvent();
 
@@ -81,7 +77,7 @@ public class EpisodeFragmentTest {
     }
 
     @NonNull
-    private List<REpisode> getrEpisodes() {
+    private List<REpisode> getEpisodes() {
         List<REpisode> value = new ArrayList<>();
         REpisode e = new REpisode();
         e.setEpisodeId("1");
